@@ -77,8 +77,8 @@ def main():
     global img, img_copy, marker_image, mode
 
     # 读取图像
-    img = cv2.imread(r'F:\python\object_detection\data\img\25_glass005_0001.jpg')
-    img = cv2.bitwise_not(img)
+    img = cv2.imread(r'F:\python\object_detection\data\imgs\14-glass005-1\14_glass005_1_0001.jpg')
+    # img = cv2.bitwise_not(img)
     # img = cv2.resize(img, (800, 600))
     img_copy = img.copy()
 

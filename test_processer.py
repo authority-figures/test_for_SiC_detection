@@ -2,12 +2,15 @@ import cv2
 
 from processer import *
 from tracking.test_tracking import *
-
+import json
 import concurrent.futures
 
 def load_image(idx):
     """单独的图像读取函数"""
-    img_path = f"../data/img/25_glass005_{idx + 1:04}.jpg"
+    global imgs_path
+    if imgs_path is None:
+        imgs_path = f"../data/img/25_glass005"
+    img_path = imgs_path+f"_{idx + 1:04}.jpg"
     current_frame = cv2.imread(img_path)
     if current_frame is None:
         print(f"无法读取图像: {img_path}")
@@ -172,13 +175,28 @@ def debug_tracker():
 
 
 def debug_kalman_tracker():
+    global imgs_path
+    imgs_path = rf"F:\python\object_detection\data\imgs\14-glass005-1\14_glass005_1"
     image_sequence = load_image_sequence(start_frame=1, end_frame=3600)
+    # ----------------------------------------------
+    # 从json文件中加载参数
+    with open(r"F:\python\object_detection\test\trackparam_for_imgs\14_glass005_1.json", 'r') as json_file:
+        parameters = json.load(json_file)
 
-    roi_coords_for_displament = (400, 0, 200, 400)  # 示例感兴趣区域坐标
-    roi_for_mask = (0, 0, 700, 700)
-    tracker = BlobTracker(detection_line_y=100)  # 在y=300的位置添加检测线
+    roi_coords_for_displacement = tuple(parameters['roi_coords_for_displacement'])
+    roi_for_mask = tuple(parameters['roi_for_mask'])
+    tracker_settings = parameters['tracker']
+    detection_line_y = tracker_settings['detection_line_y']
+    out_of_bounds_line = tracker_settings['out_of_bounds_line']
+    tool_point_center = tuple(tracker_settings['tool_point_center'])
+    tool_point_end = tuple(tracker_settings['tool_point_end'])
+    # ----------------------------------------------
+    tracker = BlobTracker(detection_line_y=detection_line_y)  # 在y=300的位置添加检测线
+    tracker.out_of_bounds_line = out_of_bounds_line
+    tracker.tool_point_center = tool_point_center
+    tracker.tool_point_end = tool_point_end
     # 跟踪碳化硅斑块并统计数量11
-    process_image_sequence_with_kalman(image_sequence, tracker, roi_coords_for_displament=roi_coords_for_displament,roi_for_mask=roi_for_mask,save_video=True)
+    process_image_sequence_with_kalman(image_sequence, tracker, roi_coords_for_displament=roi_coords_for_displacement,roi_for_mask=roi_for_mask,save_video=True)
 
 
 

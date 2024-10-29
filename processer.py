@@ -118,6 +118,8 @@ class BlobTracker:
         self.blob_id_counter = 0  # 为新检测的斑块分配唯一ID
         self.max_lost_frames = 10  # 允许的最大丢失帧数
         self.out_of_bounds_line = 400  # 超出边界的y坐标阈值
+        self.tool_point_center = (565,300)
+        self.tool_point_end = (0,455)
         self.history_tracked_blobs :list[Block] = []  # 用于存储历史跟踪斑块
 
     def save_history_to_npy(self, file_path,filename='blocks_data.npy'):
@@ -428,13 +430,14 @@ class BlobTracker:
             return px > x1
 
     def judge_for_classify(self,block):
-        tool_point_center = (565,300)
+        tool_point_center = self.tool_point_center
+        tool_point_end = self.tool_point_end
         cut_in_threshold = 15   # 车刀刀尖向右切入判断的阈值
         cut_out_threshold = 10  # 车刀刀尖向左切出判断的阈值
         flow_out_threshold = 10  # 流出和切出的y方向判断阈值
-        tool_line = ((565,300),(0,455))
+        tool_line = (tool_point_center,tool_point_end)
         tool_line_y_threshold = 5
-        offset_line = ((565,300 - tool_line_y_threshold),(0,455-tool_line_y_threshold))
+        offset_line = ((tool_point_center[0],tool_point_center[1] - tool_line_y_threshold),(tool_point_end[0],tool_point_end[1]-tool_line_y_threshold))
 
         if block.sure_for is not None:
             return block.sure_for
@@ -444,7 +447,8 @@ class BlobTracker:
 
 
         if block.bbox[0] + block.bbox[2] < tool_point_center[0] - cut_out_threshold :
-            if self.is_point_below_offset_line((block.bbox[0]+block.bbox[2],block.bbox[1]+block.bbox[3]),offset_line):
+            if self.is_point_below_offset_line((block.bbox[0]+block.bbox[2],block.bbox[1]+block.bbox[3]),offset_line)\
+                    and block.bbox[0] + block.bbox[2]>tool_point_center[0] - cut_out_threshold - 50:
                 if block.classification != 'cut_out' and block.history[-2]['area']*0.8 > block.area:
                     block.sure_for = 'cutting'
                     print(f'block {block.show_id} is sure for cutting')
@@ -452,7 +456,7 @@ class BlobTracker:
                 else:
                     return 'cut_out'
             else:
-                if block.classification != 'cut_out':
+                if block.classification != 'cut_out' or block.bbox[0] + block.bbox[2]<tool_point_center[0] - cut_out_threshold - 50:
                     return 'flow_out'
                 else:
                     block.sure_for = 'cut_out'
@@ -460,7 +464,12 @@ class BlobTracker:
 
         elif ((block.bbox[0] < tool_point_center[0] + cut_in_threshold and block.bbox[0] > tool_point_center[0] - cut_in_threshold) or
                 block.bbox[1] > tool_point_center[1]):
-            return 'cut_in'
+            if block.classification != 'cut_in' and block.history[-2]['area'] * 0.8 > block.area:
+                block.sure_for = 'cutting'
+                print(f'block {block.show_id} is sure for cutting')
+                return 'cutting'
+            else:
+                return 'cut_in'
 
         else:
             return 'cutting'

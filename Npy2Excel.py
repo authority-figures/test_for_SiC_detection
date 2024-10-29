@@ -110,7 +110,7 @@ class NpyToExcelConverter:
 
 # 示例用法
 if __name__ == "__main__":
-    npy_file_path = r"F:\python\object_detection\test\data\blocks_data3600_2024年10月28日17h29m37s.npy"  # 输入 .npy 文件的路径
+    npy_file_path = r"F:\python\object_detection\test\data\blocks_data3600_2024年10月29日11h38m03s.npy"  # 输入 .npy 文件的路径
     output_excel_path = r"./data/output_data.xlsx"  # 输出 Excel 文件的路径
 
     converter = NpyToExcelConverter(npy_file_path, output_excel_path)

@@ -1,0 +1,26 @@
+{
+    "roi_coords_for_displacement": [
+        400,
+        0,
+        200,
+        400
+    ],
+    "roi_for_mask": [
+        0,
+        0,
+        700,
+        700
+    ],
+    "tracker": {
+        "detection_line_y": 100,
+        "out_of_bounds_line": 400,
+        "tool_point_center": [
+            565,
+            300
+        ],
+        "tool_point_end": [
+            0,
+            455
+        ]
+    }
+}
